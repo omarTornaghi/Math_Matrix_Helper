@@ -1,3 +1,5 @@
+package Math_Matrix_Helper;
+
 class Prog {
     public static void main(String[] args) {
         Matrice A = new Matrice();
