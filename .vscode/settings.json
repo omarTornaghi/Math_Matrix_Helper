@@ -1,5 +1,11 @@
 {
     "prettier.arrayExpand": true,
     "prettier.alignObjectProperties": true,
-    "java.format.settings.profile": "Tornaghi Omar"
+    "java.format.settings.profile": "Tornaghi Omar",
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    }
 }

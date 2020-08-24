@@ -84,24 +84,24 @@ public class Matrice {
     private double cDet(double matrIn[][]) {
         int n = numRighe;
         switch (n) {
-        case 1:
-            return matrIn[0][0];
-        case 2:
-            return (matrIn[0][0] * matrIn[1][1]) - (matrIn[0][1] * matrIn[1][0]);
-        default:
-            // Scelgo la riga(Sempre la prima)
-            int numRiga = 0;
-            int sommatoria = 0;
-            for (int k = 0; k < n; k++) {
-                double valMatr = matrIn[numRiga][k];
-                if (valMatr != 0) {
-                    double primoNum = Math.pow(-1, (numRiga + 1) + (k + 1));
-                    double[][] matrRidotta = riduciMatr(matrIn, numRiga, k);
-                    double detA = cDet(matrRidotta);
-                    sommatoria += primoNum * valMatr * detA;
+            case 1:
+                return matrIn[0][0];
+            case 2:
+                return (matrIn[0][0] * matrIn[1][1]) - (matrIn[0][1] * matrIn[1][0]);
+            default:
+                // Scelgo la riga(Sempre la prima)
+                int numRiga = 0;
+                int sommatoria = 0;
+                for (int k = 0; k < n; k++) {
+                    double valMatr = matrIn[numRiga][k];
+                    if (valMatr != 0) {
+                        double primoNum = Math.pow(-1, (numRiga + 1) + (k + 1));
+                        double[][] matrRidotta = riduciMatr(matrIn, numRiga, k);
+                        double detA = cDet(matrRidotta);
+                        sommatoria += primoNum * valMatr * detA;
+                    }
                 }
-            }
-            return sommatoria;
+                return sommatoria;
         }
     }
 
@@ -146,62 +146,40 @@ public class Matrice {
     public Matrice riduciScala() {
         if (numRighe <= 0 || numColonne <= 0)
             return new Matrice(0, 0);
-        Matrice mScala = copiaMatriceSelf();
-        Matrice scala = new Matrice(numRighe, numColonne);
+        Matrice scala = copiaMatriceSelf();
+        Matrice risultato = new Matrice(numRighe, numColonne);
         int offset = 0;
         do {
-            boolean op = true; // boolean op = false;
-            if (mScala.getE(0, 0) == 0) {
-                op = false;
-                // Scambio la riga con una che ha il primo elemento non nullo
-                for (int i = 1; i < mScala.getNumRighe(); i++) {
-                    if (mScala.getE(i, 0) != 0) {
-                        mScala = scambiaRiga(mScala, 0, i);
-                        op = true; // Questo non c'era
-                        // System.out.println("Riga scambiata, matrice risultante:");
-                        // mScala.printMatrice();
+            // Se la prima riga ha il primo elemento nullo, la scambio
+            // con una riga che ha il primo elemento non nullo
+            boolean tutteNulle = false;
+            if (scala.getE(0, 0) == 0) {
+                tutteNulle = true;
+                for (int i = 0; i < scala.getNumRighe(); i++) {
+                    if (scala.getE(i, 0) != 0)
+                        scala = scambiaRiga(scala, 0, i);
+                    tutteNulle = false;
+                    break;
+                }
+            }
+            // Azzero il primo elemento di ogni riga
+            if (!tutteNulle) {
+                for (int i = 1; i < scala.getNumRighe(); i++) {
+                    if (scala.getE(i, 0) != 0) {
+                        double coefficiente = -scala.getE(i, 0) / scala.getE(0, 0);
+                        double[] rigaMoltiplicata = moltiplicaRiga(scala, 0, coefficiente);
+                        scala = sommaRiga(scala, i, rigaMoltiplicata);
                     }
                 }
             }
-            /*
-             * for (int i = 1; i < mScala.getNumRighe(); i++) { if (mScala.getE(i, 0) != 0)
-             * op = true; }
-             */
-            if (op) {
-                for (int i = 1; i < mScala.getNumRighe(); i++) {
-                    if (mScala.getE(i, 0) != 0) {
-                        // -Ai,1 / A1,1
-                        double coefficente = -(mScala.getE(i, 0) / mScala.getE(0, 0));
-                        // Moltiplico la prima riga
-                        double[] primaRiga = moltiplicaRiga(mScala, 0, coefficente);
-                        // System.out.println("Moltiplicata prima riga per coefficente: " +
-                        // coefficente);
-                        // System.out.println("Matrice risultante: ");
-                        // mScala.printMatrice();
-                        // Sommo la prima riga a quella corrente
-                        mScala = sommaRiga(mScala, i, primaRiga);
-                        // System.out.println("Sommato prima riga con riga: " + i + " matrice
-                        // risultante: ");
-                        // mScala.printMatrice();
-                    }
-                }
-            }
-            // Copio prima riga nella matrice pulita
-            for (int j = 0; j < mScala.getNumColonne(); j++) {
-                scala.setE(offset, j + offset, mScala.getE(0, j));
+            // Considero la sottomatrice eliminando la prima riga e la prima colonna
+            for (int j = 0; j < scala.getNumColonne(); j++) {
+                risultato.setE(offset, j + offset, scala.getE(0, j));
             }
             offset++;
-            /*
-             * Per debug System.out.println("Matrice pulita:"); scala.printMatrice();
-             * System.out.println("Matrice di lavoro:"); mScala.printMatrice();
-             */
-            mScala = riduciMatrice(mScala, 0, 0);
-            /*
-             * System.out.println("Matrice ridotta:"); mScala.printMatrice();
-             */
-        } while (mScala.getNumColonne() != 0 || mScala.getNumRighe() != 0);
-        scala = ottimizzaScala(scala);
-        return scala;
+            scala = riduciMatrice(scala, 0, 0);
+        } while (scala.getNumColonne() != 0 || scala.getNumRighe() != 0);
+        return ottimizzaScala(risultato);
     }
 
     private Matrice copiaMatriceSelf() {
@@ -284,26 +262,27 @@ public class Matrice {
     }
 
     private Matrice ottimizzaScala(Matrice s) {
-        int pivotPrecedente = -1;
+        // Controllo se le posizioni dei pivot sono corrette
+        int posPivotPrecedente = -1;
         for (int i = 0; i < s.getNumRighe(); i++) {
-            boolean t = false;
-            int pivotAttuale = s.getNumRighe() - 1;
-            for (int j = 0; j < s.getNumColonne() && !t; j++) {
-                if (s.getE(i, j) != 0 && !t) {
-                    pivotAttuale = j;
-                    t = true;
+            int posPivotAttuale = 0;
+            for (int j = 0; j < s.getNumColonne(); j++) {
+                if (s.getE(i, j) != 0) {
+                    posPivotAttuale = j;
+                    break;
                 }
             }
-            if (t && pivotAttuale <= pivotPrecedente) {
-                // La matrice non è a scala, va azzerato il pivot
-                // Moltiplico la riga sopra per un coefficente e la sommo con quella attuale
-                if (i > 0) {
-                    double coefficente = -(s.getE(i, pivotAttuale) / s.getE(i - 1, pivotAttuale));
-                    double[] rigaMoltiplicata = moltiplicaRiga(s, i - 1, coefficente);
-                    s = sommaRiga(s, i, rigaMoltiplicata);
-                }
+            if (posPivotAttuale == posPivotPrecedente) {
+                // il pivot è nella stessa posizione
+                double coefficiente = -s.getE(i, posPivotAttuale) / s.getE(i - 1, posPivotAttuale);
+                double[] rigaMoltiplicata = moltiplicaRiga(s, i - 1, coefficiente);
+                s = sommaRiga(s, i, rigaMoltiplicata);
+            } else {
+                if (posPivotAttuale < posPivotPrecedente) // Scambio righe
+                    s = scambiaRiga(s, i - 1, i);
+                else
+                    posPivotPrecedente = posPivotAttuale;
             }
-            pivotPrecedente = pivotAttuale;
         }
         return s;
     }
@@ -487,13 +466,55 @@ public class Matrice {
         }
     }
 
+    public void caricaDaFileV2(String perc) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(perc));
+            String txtFile = "";
+            String line = reader.readLine();
+            while (line != null && !line.isEmpty()) {
+                txtFile += line + "\n";
+                line = reader.readLine();
+            }
+            String[] righe = txtFile.split("\n");
+            String[] numStr;
+            if (righe.length > 0)
+                numStr = righe[0].split(" ");
+            else {
+                matr = new double[0][0];
+                numRighe = 0;
+                numColonne = 0;
+                reader.close();
+                return;
+            }
+            numRighe = righe.length;
+            numColonne = numStr.length;
+            matr = new double[numRighe][numColonne];
+            int i = 0, j = 0;
+            for (String str : righe) {
+                numStr = str.split(" ");
+                for (String nS : numStr) {
+                    matr[i][j] = Double.parseDouble(nS);
+                    j++;
+                }
+                j = 0;
+                i++;
+            }
+            reader.close();
+        } catch (Exception e) {
+            System.out.println("Errore nella lettura del file");
+            matr = new double[0][0];
+            numRighe = 0;
+            numColonne = 0;
+        }
+    }
+
     public void salvaSuFile(String percorso) {
         try {
             FileWriter w;
             w = new FileWriter(percorso);
             BufferedWriter b;
             b = new BufferedWriter(w);
-            b.write(String.valueOf(numRighe) + "\n" + String.valueOf(numColonne) + "\n" + this.toString());
+            b.write(this.toString());
             b.close();
         } catch (Exception ex) {
         }
