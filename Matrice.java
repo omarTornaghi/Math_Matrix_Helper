@@ -442,33 +442,6 @@ public class Matrice {
     public void caricaDaFile(String perc) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(perc));
-            numRighe = Integer.parseInt(reader.readLine());
-            numColonne = Integer.parseInt(reader.readLine());
-            matr = new double[numRighe][numColonne];
-            String line = reader.readLine();
-            int i = 0;
-            while (line != null && !line.isEmpty()) {
-                int j = 0;
-                String arg[] = line.split(SEPARATORE);
-                for (String a : arg) {
-                    if (!a.isEmpty()) {
-                        matr[i][j] = Integer.parseInt(a);
-                        j++;
-                    }
-                }
-                i++;
-                line = reader.readLine();
-            }
-            reader.close();
-        } catch (
-
-        IOException e) {
-        }
-    }
-
-    public void caricaDaFileV2(String perc) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(perc));
             String txtFile = "";
             String line = reader.readLine();
             while (line != null && !line.isEmpty()) {
